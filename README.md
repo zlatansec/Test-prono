@@ -67,6 +67,12 @@ Un workflow GitHub Actions (`.github/workflows/android-build.yml`) compile
 automatiquement l'APK debug à chaque push et le publie en artifact du run,
 donc tu peux le télécharger sans installer de SDK Android en local.
 
+**Lien de téléchargement stable** : chaque push met aussi à jour une release
+GitHub `apk-latest` avec le dernier APK compilé — un seul lien à garder en
+favori, pas besoin de refouiller les runs Actions à chaque fois :
+
+https://github.com/zlatansec/Test-prono/releases/tag/apk-latest
+
 ## Limites connues / pistes d'amélioration
 
 - Seuls les canaux Telegram **publics** fonctionnent (pas les canaux privés,
