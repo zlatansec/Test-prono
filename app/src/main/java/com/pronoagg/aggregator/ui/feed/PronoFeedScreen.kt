@@ -194,7 +194,7 @@ private fun PronoCard(prono: PronoEntity, onSetOutcome: (PronoOutcome) -> Unit) 
                 },
                 modifier = Modifier.padding(top = 4.dp)
             ) {
-                Text("Ouvrir sur Telegram")
+                Text(if (prono.link.startsWith("https://t.me/")) "Ouvrir sur Telegram" else "Voir la source")
             }
         }
     }

@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pronoagg.aggregator.data.local.ChannelEntity
+import com.pronoagg.aggregator.data.local.ChannelSource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +46,7 @@ fun ManageChannelsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Canaux Telegram") },
+                title = { Text("Sources") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Retour")
@@ -56,7 +57,8 @@ fun ManageChannelsScreen(
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
             Text(
-                "Ajoute un canal Telegram public (le canal doit être en accès public, pas privé).",
+                "Ajoute un canal Telegram public (accès public, pas privé). " +
+                    "Pronosoft est inclus automatiquement comme source supplémentaire.",
                 style = MaterialTheme.typography.bodyMedium
             )
             Row(
@@ -95,12 +97,16 @@ fun ManageChannelsScreen(
 
 @Composable
 private fun ChannelRow(channel: ChannelEntity, onRemove: () -> Unit) {
+    val label = when (ChannelSource.fromStorage(channel.source)) {
+        ChannelSource.TELEGRAM -> "@${channel.username}"
+        ChannelSource.PRONOSOFT -> "Pronosoft"
+    }
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("@${channel.username}", style = MaterialTheme.typography.bodyLarge)
+            Text(label, style = MaterialTheme.typography.bodyLarge)
             IconButton(onClick = onRemove) {
                 Icon(Icons.Default.Delete, contentDescription = "Supprimer")
             }

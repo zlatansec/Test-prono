@@ -8,6 +8,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.pronoagg.aggregator.data.DefaultChannels
 import com.pronoagg.aggregator.data.local.AppDatabase
+import com.pronoagg.aggregator.data.local.ChannelSource
+import com.pronoagg.aggregator.data.remote.PronosoftScraper
 import com.pronoagg.aggregator.data.repository.PronoRepository
 import com.pronoagg.aggregator.worker.RefreshPronosWorker
 import kotlinx.coroutines.CoroutineScope
@@ -49,12 +51,13 @@ class PronoAggApplication : Application() {
         applicationScope.launch {
             val repository = PronoRepository(AppDatabase.getInstance(this@PronoAggApplication))
             DefaultChannels.SEED_USERNAMES.forEach { repository.addChannel(it) }
+            repository.addChannel(PronosoftScraper.SOURCE_ID, ChannelSource.PRONOSOFT)
             prefs.edit().putBoolean(KEY_SEEDED, true).apply()
         }
     }
 
     companion object {
         private const val PREFS_NAME = "prono_agg_prefs"
-        private const val KEY_SEEDED = "seeded_default_channels_v1"
+        private const val KEY_SEEDED = "seeded_default_channels_v2"
     }
 }

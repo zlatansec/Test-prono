@@ -12,5 +12,6 @@ data class ChannelEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val username: String,
     val displayName: String? = null,
-    val addedAt: Long = System.currentTimeMillis()
+    val addedAt: Long = System.currentTimeMillis(),
+    val source: String = ChannelSource.TELEGRAM.name
 )

@@ -9,15 +9,6 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-data class TelegramMessage(
-    val channelUsername: String,
-    val channelDisplayName: String?,
-    val messageId: Long,
-    val link: String,
-    val text: String,
-    val timestampMillis: Long
-)
-
 /**
  * Fetches public channel posts through Telegram's own SSR preview endpoint
  * (https://t.me/s/<username>), the same lightweight page Telegram serves for
@@ -31,7 +22,7 @@ class TelegramPreviewScraper(
         .build()
 ) {
 
-    suspend fun fetchChannel(username: String): List<TelegramMessage> = withContext(Dispatchers.IO) {
+    suspend fun fetchChannel(username: String): List<ScrapedPost> = withContext(Dispatchers.IO) {
         val cleanUsername = username.removePrefix("@").trim()
         val request = Request.Builder()
             .url("https://t.me/s/$cleanUsername")
@@ -45,7 +36,7 @@ class TelegramPreviewScraper(
         }
     }
 
-    private fun parse(username: String, html: String): List<TelegramMessage> {
+    private fun parse(username: String, html: String): List<ScrapedPost> {
         val doc = Jsoup.parse(html, "https://t.me/s/$username")
         val channelTitle = doc.selectFirst(".tgme_channel_info_header_title")?.text()
 
@@ -61,10 +52,10 @@ class TelegramPreviewScraper(
             val datetimeAttr = messageDiv.selectFirst("time[datetime]")?.attr("datetime")
             val timestamp = datetimeAttr?.let { parseIso8601(it) } ?: return@mapNotNull null
 
-            TelegramMessage(
-                channelUsername = username,
-                channelDisplayName = channelTitle,
-                messageId = messageId,
+            ScrapedPost(
+                sourceUsername = username,
+                sourceDisplayName = channelTitle,
+                postId = messageId,
                 link = "https://t.me/$username/$messageId",
                 text = text,
                 timestampMillis = timestamp

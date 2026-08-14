@@ -29,6 +29,13 @@ sportifs, avec un suivi manuel des résultats par canal.
   ces posts via une heuristique locale (`PronoClassifier`) qui cherche des
   cotes, un format "Équipe A - Équipe B" ou du vocabulaire paris/sport — pas un
   vrai classifieur, donc imparfait, d'où le toggle pour tout revoir au besoin.
+- **Pronosoft** est inclus comme source supplémentaire (pas un canal Telegram) :
+  `PronosoftScraper` scrape une page publique de pronostics et réutilise
+  `PronoClassifier` pour ne garder que les blocs qui ressemblent à un vrai
+  prono, plutôt que des sélecteurs CSS précis. Ce scraper n'a pas pu être testé
+  contre le vrai site pendant le développement (domaine bloqué par la politique
+  réseau de l'environnement de dev) — à vérifier/ajuster une fois testé en
+  conditions réelles.
 
 ## Structure du projet
 
@@ -39,8 +46,8 @@ app/src/main/java/com/pronoagg/aggregator/
 ├── data/
 │   ├── DefaultChannels.kt        # canaux Telegram pré-remplis au premier lancement
 │   ├── PronoClassifier.kt        # heuristique "ça ressemble à un prono ?" pour filtrer le bruit
-│   ├── local/                    # Room : ChannelEntity, PronoEntity, PronoOutcome, DAOs, AppDatabase
-│   ├── remote/                   # TelegramPreviewScraper (OkHttp + Jsoup)
+│   ├── local/                    # Room : ChannelEntity, ChannelSource, PronoEntity, PronoOutcome, DAOs, AppDatabase
+│   ├── remote/                   # TelegramPreviewScraper, PronosoftScraper (OkHttp + Jsoup)
 │   └── repository/               # PronoRepository (orchestration + dédup + stats)
 ├── worker/                       # RefreshPronosWorker (WorkManager)
 └── ui/
@@ -91,3 +98,10 @@ https://github.com/zlatansec/Test-prono/releases/tag/apk-latest
   classifieur : il peut laisser passer du bruit ou cacher un vrai prono mal
   formulé. Prochaine piste : marquage manuel "Ce n'est pas un prono" pour
   affiner, ou passage à un modèle plus fin.
+- `PronosoftScraper` n'a jamais tourné contre le vrai pronosoft.com pendant le
+  dev — il peut très bien ne rien remonter du tout tant qu'il n'a pas été
+  testé/ajusté sur le vrai HTML de la page.
+- Winamax (cotes en direct, % de joueurs par pari) n'est volontairement pas
+  scrapé : ces données viennent d'un flux temps réel propriétaire (pas une
+  page HTML publique), ce qui pose plus de risques CGU et de fragilité
+  technique que le reste des sources de cette app.
