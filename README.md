@@ -24,6 +24,11 @@ sportifs, avec un suivi manuel des résultats par canal.
   détection automatique du gagné/perdu à partir du texte n'est pas fiable).
 - L'écran **Stats** agrège ces marquages par canal : nombre de pronos, W/L/void
   et taux de réussite (gagnés / (gagnés + perdus)), triés du meilleur au moins bon.
+- Les canaux Telegram mélangent souvent pronos et bruit (promo VIP, messages de
+  bienvenue, liens de parrainage...). Le toggle **"Pronos uniquement"** filtre
+  ces posts via une heuristique locale (`PronoClassifier`) qui cherche des
+  cotes, un format "Équipe A - Équipe B" ou du vocabulaire paris/sport — pas un
+  vrai classifieur, donc imparfait, d'où le toggle pour tout revoir au besoin.
 
 ## Structure du projet
 
@@ -33,6 +38,7 @@ app/src/main/java/com/pronoagg/aggregator/
 ├── MainActivity.kt
 ├── data/
 │   ├── DefaultChannels.kt        # canaux Telegram pré-remplis au premier lancement
+│   ├── PronoClassifier.kt        # heuristique "ça ressemble à un prono ?" pour filtrer le bruit
 │   ├── local/                    # Room : ChannelEntity, PronoEntity, PronoOutcome, DAOs, AppDatabase
 │   ├── remote/                   # TelegramPreviewScraper (OkHttp + Jsoup)
 │   └── repository/               # PronoRepository (orchestration + dédup + stats)
@@ -75,3 +81,7 @@ donc tu peux le télécharger sans installer de SDK Android en local.
 - Les 4 canaux par défaut sont des exemples pour démarrer rapidement, pas une
   recommandation de qualité — vérifie toi-même leur fiabilité avant de suivre
   leurs pronostics.
+- Le filtre "Pronos uniquement" est heuristique (mots-clés/regex), pas un vrai
+  classifieur : il peut laisser passer du bruit ou cacher un vrai prono mal
+  formulé. Prochaine piste : marquage manuel "Ce n'est pas un prono" pour
+  affiner, ou passage à un modèle plus fin.

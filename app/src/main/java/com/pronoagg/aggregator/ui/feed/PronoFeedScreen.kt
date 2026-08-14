@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -46,39 +47,62 @@ fun PronoFeedScreen(
     viewModel: PronoFeedViewModel = viewModel()
 ) {
     val pronos by viewModel.pronos.collectAsState()
+    val visiblePronos by viewModel.visiblePronos.collectAsState()
+    val showOnlyPronos by viewModel.showOnlyPronos.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Pronos") },
-                actions = {
-                    IconButton(onClick = { viewModel.refresh() }) {
-                        if (isRefreshing) {
-                            CircularProgressIndicator(modifier = Modifier.padding(4.dp))
-                        } else {
-                            Icon(Icons.Default.Refresh, contentDescription = "Rafraîchir")
+            Column {
+                TopAppBar(
+                    title = { Text("Pronos") },
+                    actions = {
+                        IconButton(onClick = { viewModel.refresh() }) {
+                            if (isRefreshing) {
+                                CircularProgressIndicator(modifier = Modifier.padding(4.dp))
+                            } else {
+                                Icon(Icons.Default.Refresh, contentDescription = "Rafraîchir")
+                            }
+                        }
+                        TextButton(onClick = onOpenStats) {
+                            Text("📊 Stats")
+                        }
+                        IconButton(onClick = onOpenChannels) {
+                            Icon(Icons.Default.Settings, contentDescription = "Canaux")
                         }
                     }
-                    TextButton(onClick = onOpenStats) {
-                        Text("📊 Stats")
-                    }
-                    IconButton(onClick = onOpenChannels) {
-                        Icon(Icons.Default.Settings, contentDescription = "Canaux")
-                    }
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Pronos uniquement",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Switch(
+                        checked = showOnlyPronos,
+                        onCheckedChange = { viewModel.toggleShowOnlyPronos() }
+                    )
                 }
-            )
+            }
         }
     ) { padding ->
-        if (pronos.isEmpty()) {
-            EmptyFeed(modifier = Modifier.padding(padding), onOpenChannels = onOpenChannels)
+        if (visiblePronos.isEmpty()) {
+            EmptyFeed(
+                modifier = Modifier.padding(padding),
+                onOpenChannels = onOpenChannels,
+                hiddenByFilter = pronos.isNotEmpty() && showOnlyPronos
+            )
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp, padding.calculateTopPadding(), 16.dp, 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(pronos, key = { it.id }) { prono ->
+                items(visiblePronos, key = { it.id }) { prono ->
                     PronoCard(prono, onSetOutcome = { outcome -> viewModel.setOutcome(prono.id, outcome) })
                 }
             }
@@ -87,20 +111,32 @@ fun PronoFeedScreen(
 }
 
 @Composable
-private fun EmptyFeed(modifier: Modifier = Modifier, onOpenChannels: () -> Unit) {
+private fun EmptyFeed(modifier: Modifier = Modifier, onOpenChannels: () -> Unit, hiddenByFilter: Boolean) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "Aucun prono pour l'instant",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                "Ajoute un canal Telegram public pour commencer à agréger des pronos.",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 8.dp, start = 24.dp, end = 24.dp)
-            )
-            TextButton(onClick = onOpenChannels, modifier = Modifier.padding(top = 12.dp)) {
-                Text("Gérer les canaux")
+            if (hiddenByFilter) {
+                Text(
+                    "Aucun post ne ressemble à un prono",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    "Désactive \"Pronos uniquement\" pour voir tous les posts des canaux.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp, start = 24.dp, end = 24.dp)
+                )
+            } else {
+                Text(
+                    "Aucun prono pour l'instant",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    "Ajoute un canal Telegram public pour commencer à agréger des pronos.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp, start = 24.dp, end = 24.dp)
+                )
+                TextButton(onClick = onOpenChannels, modifier = Modifier.padding(top = 12.dp)) {
+                    Text("Gérer les canaux")
+                }
             }
         }
     }
