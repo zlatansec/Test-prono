@@ -25,17 +25,17 @@ sportifs, avec un suivi manuel des résultats par canal.
 - L'écran **Stats** agrège ces marquages par canal : nombre de pronos, W/L/void
   et taux de réussite (gagnés / (gagnés + perdus)), triés du meilleur au moins bon.
 - Les canaux Telegram mélangent souvent pronos et bruit (promo VIP, messages de
-  bienvenue, liens de parrainage...). Le toggle **"Pronos uniquement"** filtre
-  ces posts via une heuristique locale (`PronoClassifier`) qui cherche des
-  cotes, un format "Équipe A - Équipe B" ou du vocabulaire paris/sport — pas un
-  vrai classifieur, donc imparfait, d'où le toggle pour tout revoir au besoin.
-- **Pronosoft** est inclus comme source supplémentaire (pas un canal Telegram) :
-  `PronosoftScraper` scrape une page publique de pronostics et réutilise
-  `PronoClassifier` pour ne garder que les blocs qui ressemblent à un vrai
-  prono, plutôt que des sélecteurs CSS précis. Ce scraper n'a pas pu être testé
-  contre le vrai site pendant le développement (domaine bloqué par la politique
-  réseau de l'environnement de dev) — à vérifier/ajuster une fois testé en
-  conditions réelles.
+  bienvenue, liens de parrainage...). Le toggle **"Pronos uniquement"** (dans
+  la barre du haut, **désactivé par défaut** pour l'instant) filtre ces posts
+  via une heuristique locale (`PronoClassifier`) qui cherche des cotes, un
+  format "Équipe A - Équipe B" ou du vocabulaire paris/sport — pas un vrai
+  classifieur, donc imparfait.
+- `PronosoftScraper` existe dans le code (source supplémentaire, réutilise
+  `PronoClassifier`) mais **n'est plus ajouté automatiquement** au premier
+  lancement : il n'a jamais pu être testé contre le vrai pronosoft.com pendant
+  le dev (domaine bloqué par la politique réseau de l'environnement de dev) et
+  ne remontait rien d'utile en pratique. À reprendre avec du HTML réel avant
+  de le réactiver.
 
 ## Structure du projet
 
@@ -96,11 +96,16 @@ https://github.com/zlatansec/Test-prono/releases/tag/apk-latest
   leurs pronostics.
 - Le filtre "Pronos uniquement" est heuristique (mots-clés/regex), pas un vrai
   classifieur : il peut laisser passer du bruit ou cacher un vrai prono mal
-  formulé. Prochaine piste : marquage manuel "Ce n'est pas un prono" pour
-  affiner, ou passage à un modèle plus fin.
-- `PronosoftScraper` n'a jamais tourné contre le vrai pronosoft.com pendant le
-  dev — il peut très bien ne rien remonter du tout tant qu'il n'a pas été
-  testé/ajusté sur le vrai HTML de la page.
+  formulé. Une première version était trop stricte (seuil de longueur trop
+  haut, mots-clés avec espace final qui ne matchaient pas devant une
+  ponctuation, veto anti-pub qui coupait court avant de checker le vocabulaire
+  paris/sport) et cachait des pronos réels — corrigé, mais pas garanti
+  parfait. Prochaine piste : marquage manuel "Ce n'est pas un prono" pour
+  affiner avec de vraies données plutôt que deviner.
+- Si tu as un compte/session avec un accès réseau moins restreint que
+  l'environnement de dev utilisé ici, coller le HTML source d'une page
+  Pronosoft permettrait d'écrire un scraper ciblé plutôt que la version
+  générique actuelle (désactivée par défaut, voir plus haut).
 - Winamax (cotes en direct, % de joueurs par pari) n'est volontairement pas
   scrapé : ces données viennent d'un flux temps réel propriétaire (pas une
   page HTML publique), ce qui pose plus de risques CGU et de fragilité

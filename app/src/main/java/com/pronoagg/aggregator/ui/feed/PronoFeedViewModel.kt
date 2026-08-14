@@ -23,7 +23,7 @@ class PronoFeedViewModel(application: Application) : AndroidViewModel(applicatio
     val pronos: StateFlow<List<PronoEntity>> = repository.feed
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _showOnlyPronos = MutableStateFlow(true)
+    private val _showOnlyPronos = MutableStateFlow(false)
     val showOnlyPronos: StateFlow<Boolean> = _showOnlyPronos.asStateFlow()
 
     val visiblePronos: StateFlow<List<PronoEntity>> = combine(pronos, showOnlyPronos) { list, onlyPronos ->
