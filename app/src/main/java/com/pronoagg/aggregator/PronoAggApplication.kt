@@ -9,6 +9,7 @@ import androidx.work.WorkManager
 import com.pronoagg.aggregator.data.DefaultChannels
 import com.pronoagg.aggregator.data.local.AppDatabase
 import com.pronoagg.aggregator.data.repository.PronoRepository
+import com.pronoagg.aggregator.worker.RefreshPronosWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
