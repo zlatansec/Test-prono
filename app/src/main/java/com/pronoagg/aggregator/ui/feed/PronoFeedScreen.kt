@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,11 +36,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pronoagg.aggregator.data.local.PronoEntity
+import com.pronoagg.aggregator.data.local.PronoOutcome
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PronoFeedScreen(
     onOpenChannels: () -> Unit,
+    onOpenStats: () -> Unit,
     viewModel: PronoFeedViewModel = viewModel()
 ) {
     val pronos by viewModel.pronos.collectAsState()
@@ -57,6 +60,9 @@ fun PronoFeedScreen(
                             Icon(Icons.Default.Refresh, contentDescription = "Rafraîchir")
                         }
                     }
+                    TextButton(onClick = onOpenStats) {
+                        Text("📊 Stats")
+                    }
                     IconButton(onClick = onOpenChannels) {
                         Icon(Icons.Default.Settings, contentDescription = "Canaux")
                     }
@@ -73,7 +79,7 @@ fun PronoFeedScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(pronos, key = { it.id }) { prono ->
-                    PronoCard(prono)
+                    PronoCard(prono, onSetOutcome = { outcome -> viewModel.setOutcome(prono.id, outcome) })
                 }
             }
         }
@@ -100,9 +106,12 @@ private fun EmptyFeed(modifier: Modifier = Modifier, onOpenChannels: () -> Unit)
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PronoCard(prono: PronoEntity) {
+private fun PronoCard(prono: PronoEntity, onSetOutcome: (PronoOutcome) -> Unit) {
     val context = LocalContext.current
+    val outcome = PronoOutcome.fromStorage(prono.outcome)
+
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -123,6 +132,26 @@ private fun PronoCard(prono: PronoEntity) {
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(top = 8.dp)
             )
+            Row(
+                modifier = Modifier.padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = outcome == PronoOutcome.WON,
+                    onClick = { onSetOutcome(if (outcome == PronoOutcome.WON) PronoOutcome.UNKNOWN else PronoOutcome.WON) },
+                    label = { Text("Gagné") }
+                )
+                FilterChip(
+                    selected = outcome == PronoOutcome.LOST,
+                    onClick = { onSetOutcome(if (outcome == PronoOutcome.LOST) PronoOutcome.UNKNOWN else PronoOutcome.LOST) },
+                    label = { Text("Perdu") }
+                )
+                FilterChip(
+                    selected = outcome == PronoOutcome.VOID,
+                    onClick = { onSetOutcome(if (outcome == PronoOutcome.VOID) PronoOutcome.UNKNOWN else PronoOutcome.VOID) },
+                    label = { Text("Annulé") }
+                )
+            }
             TextButton(
                 onClick = {
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(prono.link)))

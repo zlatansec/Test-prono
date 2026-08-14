@@ -2,12 +2,15 @@
 
 Application Android native (Kotlin + Jetpack Compose) qui agrège dans un flux
 unique les messages postés sur des canaux Telegram **publics** de pronostics
-sportifs.
+sportifs, avec un suivi manuel des résultats par canal.
 
 ## Fonctionnement
 
-- Tu ajoutes le `@username` d'un ou plusieurs canaux Telegram publics dans
-  l'écran "Canaux".
+- Au premier lancement, l'app est pré-remplie avec 4 canaux Telegram publics
+  de tipsters indépendants (`louise_prono`, `pronosticsfootball365`,
+  `neopronostics`, `parieursfoot`) — ce sont des sources tierces non vérifiées
+  quant à la qualité de leurs pronostics, à remplacer ou compléter librement
+  depuis l'écran "Canaux".
 - L'app va chercher les messages via la page de prévisualisation publique de
   Telegram (`https://t.me/s/<canal>`), la même page légère que Telegram sert
   pour les aperçus de liens/embeds — aucun compte, token de bot ni login requis.
@@ -16,21 +19,28 @@ sportifs.
   (Room/SQLite), puis affichés dans un flux chronologique.
 - Un `WorkManager` rafraîchit automatiquement toutes les 30 minutes ; un bouton
   de rafraîchissement manuel est aussi disponible dans la barre du haut.
+- Chaque prono peut être marqué manuellement **Gagné / Perdu / Annulé** via des
+  chips sur sa carte (Telegram ne donne pas le résultat de façon structurée, la
+  détection automatique du gagné/perdu à partir du texte n'est pas fiable).
+- L'écran **Stats** agrège ces marquages par canal : nombre de pronos, W/L/void
+  et taux de réussite (gagnés / (gagnés + perdus)), triés du meilleur au moins bon.
 
 ## Structure du projet
 
 ```
 app/src/main/java/com/pronoagg/aggregator/
-├── PronoAggApplication.kt        # planifie le rafraîchissement périodique
+├── PronoAggApplication.kt        # planifie le rafraîchissement périodique + seed des canaux par défaut
 ├── MainActivity.kt
 ├── data/
-│   ├── local/                    # Room : ChannelEntity, PronoEntity, DAOs, AppDatabase
+│   ├── DefaultChannels.kt        # canaux Telegram pré-remplis au premier lancement
+│   ├── local/                    # Room : ChannelEntity, PronoEntity, PronoOutcome, DAOs, AppDatabase
 │   ├── remote/                   # TelegramPreviewScraper (OkHttp + Jsoup)
-│   └── repository/               # PronoRepository (orchestration + dédup)
+│   └── repository/               # PronoRepository (orchestration + dédup + stats)
 ├── worker/                       # RefreshPronosWorker (WorkManager)
 └── ui/
     ├── feed/                     # Écran flux de pronos + ViewModel
     ├── channels/                 # Écran gestion des canaux + ViewModel
+    ├── stats/                    # Écran statistiques par canal + ViewModel
     └── theme/                    # Thème Material3
 ```
 
@@ -55,9 +65,13 @@ donc tu peux le télécharger sans installer de SDK Android en local.
 
 - Seuls les canaux Telegram **publics** fonctionnent (pas les canaux privés,
   ni les groupes payants nécessitant une invitation).
-- Pas de détection automatique du statut gagné/perdu d'un prono, ni de stats
-  (ROI, taux de réussite) — la V1 est un flux simple.
+- Le marquage gagné/perdu/annulé est manuel — pas de calcul de ROI (nécessite
+  la cote et la mise, que les canaux ne fournissent pas toujours de façon
+  structurée).
 - Le scraping HTML de `t.me/s/` peut casser si Telegram change la structure
   de cette page ; à surveiller.
 - Respecte les CGU des canaux que tu ajoutes et évite un rafraîchissement
   trop agressif (l'intervalle par défaut est de 30 minutes).
+- Les 4 canaux par défaut sont des exemples pour démarrer rapidement, pas une
+  recommandation de qualité — vérifie toi-même leur fiabilité avant de suivre
+  leurs pronostics.

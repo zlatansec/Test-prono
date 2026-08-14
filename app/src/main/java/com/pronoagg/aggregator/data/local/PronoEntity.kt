@@ -16,5 +16,6 @@ data class PronoEntity(
     val link: String,
     val text: String,
     val timestampMillis: Long,
-    val fetchedAt: Long = System.currentTimeMillis()
+    val fetchedAt: Long = System.currentTimeMillis(),
+    val outcome: String = PronoOutcome.UNKNOWN.name
 )

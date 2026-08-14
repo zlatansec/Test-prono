@@ -2,7 +2,9 @@ package com.pronoagg.aggregator.data.repository
 
 import com.pronoagg.aggregator.data.local.AppDatabase
 import com.pronoagg.aggregator.data.local.ChannelEntity
+import com.pronoagg.aggregator.data.local.ChannelStatsRow
 import com.pronoagg.aggregator.data.local.PronoEntity
+import com.pronoagg.aggregator.data.local.PronoOutcome
 import com.pronoagg.aggregator.data.remote.TelegramPreviewScraper
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -15,6 +17,11 @@ class PronoRepository(
 
     val feed: Flow<List<PronoEntity>> = db.pronoDao().getAllOrderedByDate()
     val channels: Flow<List<ChannelEntity>> = db.channelDao().getAll()
+    val channelStats: Flow<List<ChannelStatsRow>> = db.pronoDao().getStatsByChannel()
+
+    suspend fun setOutcome(pronoId: Long, outcome: PronoOutcome) {
+        db.pronoDao().updateOutcome(pronoId, outcome.name)
+    }
 
     suspend fun addChannel(rawUsername: String) {
         val username = normalize(rawUsername)
